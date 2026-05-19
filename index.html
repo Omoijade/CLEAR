@@ -1,0 +1,1296 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F2F2F7">
+<title>CLEAR-AMR</title>
+<style>
+:root{
+  --bg:#F2F2F7;--card:#fff;
+  --ink:#000000;--sub:#1C1C1E;--muted:rgba(0,0,0,.42);
+  --line:rgba(0,0,0,.10);--fill:rgba(0,0,0,.08);--fill2:rgba(0,0,0,.04);
+  --blue:#007AFF;--green:#34C759;--orange:#FF9500;--red:#FF3B30;
+  --sh:0 2px 14px rgba(0,0,0,.07);--r:16px;--rs:10px;--tab:83px;--nav:52px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.47;font-size:17px;-webkit-font-smoothing:antialiased}
+
+/* ── HEADER ── */
+.app-header{position:sticky;top:0;z-index:100;background:rgba(242,242,247,.9);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--line);padding-top:env(safe-area-inset-top)}
+.header-inner{max-width:980px;margin:0 auto;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.app-wordmark{font-size:17px;font-weight:700;letter-spacing:-.5px;margin:0}
+.app-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.icon-btn{width:34px;height:34px;border-radius:50%;background:var(--fill);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--blue);transition:opacity .15s}
+.icon-btn:active{opacity:.6}
+
+/* ── SETUP PROMPT ── */
+.setup-prompt{background:rgba(0,122,255,.08);border-bottom:.5px solid rgba(0,122,255,.2);padding:12px 16px;display:flex;gap:12px;align-items:center;font-size:14px;color:#004FA3}
+.setup-prompt b{display:block;margin-bottom:2px;font-size:15px}
+.setup-prompt button{flex-shrink:0;border:none;background:var(--blue);color:#fff;border-radius:8px;padding:7px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+
+/* ── TAB BAR ── */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;height:var(--tab);padding-bottom:env(safe-area-inset-bottom);background:rgba(242,242,247,.94);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-top:.5px solid var(--line);display:flex}
+.tab-btn{flex:1;border:none;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:8px 2px 0;color:var(--muted);font-size:10px;font-weight:500;letter-spacing:.1px;transition:color .15s}
+.tab-btn.active{color:var(--blue)}
+.tab-icon{width:26px;height:26px;display:block}
+
+/* ── TOOL NAV ── */
+.tool-nav{position:fixed;left:0;right:0;bottom:var(--tab);z-index:90;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);box-shadow:0 -2px 12px rgba(0,0,0,.06);padding:8px 14px calc(8px + env(safe-area-inset-bottom,0px))}
+.tool-nav-inner{max-width:980px;margin:0 auto;display:grid;grid-template-columns:80px 1fr 80px;gap:10px;align-items:center}
+.nav-step{text-align:center}
+.nav-step-name{font-size:13px;font-weight:600;color:var(--ink);line-height:1.2}
+.nav-step-count{font-size:11px;color:var(--muted)}
+.nav-saved{font-size:11px;color:var(--green);opacity:0;transition:opacity .3s}
+
+/* ── MAIN ── */
+.app-main{max-width:980px;margin:0 auto;padding:0 14px calc(var(--tab) + var(--nav) + 14px)}
+.tab-view{display:none;padding-top:14px}
+.tab-view.active{display:block}
+
+/* ── STEP PROGRESS ── */
+.step-dots{display:flex;gap:4px;margin-bottom:14px}
+.dot{flex:1;height:4px;border-radius:99px;background:var(--line);transition:background .25s}
+.dot.done{background:var(--blue)}
+.dot.cur{background:rgba(0,122,255,.4)}
+.step-view{display:none}
+.step-view.active{display:grid;gap:12px}
+
+/* ── CARDS ── */
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:12px}
+.card-head{padding:16px;border-bottom:.5px solid var(--line)}
+.card-head h2{margin:0 0 2px;font-size:17px;font-weight:700;letter-spacing:-.4px}
+.card-head p{margin:0;font-size:13px;color:var(--muted)}
+.card-body{padding:16px;display:grid;gap:14px}
+
+/* ── FORMS ── */
+label{display:grid;gap:6px;font-size:15px;font-weight:600;color:var(--sub)}
+.hint{font-size:13px;font-weight:400;color:var(--muted)}
+input[type="text"],input[type="date"],input[type="time"],select,textarea{width:100%;border:none;border-radius:var(--rs);padding:12px;font:inherit;font-size:15px;background:var(--fill2);color:var(--ink);min-height:44px;appearance:none;-webkit-appearance:none;outline:none;transition:background .15s}
+input:focus,select:focus,textarea:focus{background:var(--fill);box-shadow:0 0 0 3px rgba(0,122,255,.18)}
+textarea{resize:vertical;min-height:86px}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238E8E93' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+
+/* ── GRID ── */
+.g{display:grid;gap:12px}
+@media(min-width:600px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:1fr 1fr 1fr 1fr}}
+
+/* ── FIELD GROUP ── */
+.fgroup{display:grid;gap:10px}
+.fgroup-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:0 2px;margin-top:4px}
+
+/* ── BANNERS ── */
+.banner{padding:12px 14px;border-radius:var(--rs);font-size:14px;line-height:1.45;color:var(--ink)}
+.green{background:rgba(52,199,89,.1);color:#0E5E2A}
+.orange{background:rgba(255,149,0,.1);color:#7C3D00}
+.blue{background:rgba(0,122,255,.1);color:#004FA3}
+.red-bg{background:rgba(255,59,48,.1);color:#7A1612}
+
+/* ── CHOICES ── */
+.choices{display:grid;gap:8px}
+.choice{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;padding:12px 14px;border:1.5px solid var(--line);border-radius:var(--rs);background:var(--fill2);cursor:pointer;font-size:15px;font-weight:600;transition:border-color .15s,background .15s}
+.choice:has(input:checked){border-color:var(--blue);background:rgba(0,122,255,.06)}
+.choice small{display:block;font-size:12px;font-weight:400;color:var(--muted);margin-top:2px}
+.choice input{margin-top:2px;accent-color:var(--blue)}
+
+/* ── BUTTONS ── */
+button,.btn{border:none;border-radius:var(--rs);padding:11px 16px;font:inherit;font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;transition:opacity .15s}
+button:active{opacity:.7}
+.bp{background:var(--blue);color:#fff}
+.bs{background:var(--fill);color:var(--blue)}
+.bg-btn{background:transparent;color:var(--muted);border:1.5px solid var(--line)}
+.bd{background:rgba(255,59,48,.1);color:var(--red)}
+.bfull{width:100%}
+button:disabled{opacity:.3;cursor:not-allowed}
+
+/* ── LIVE PREVIEW ── */
+.preview-box{padding:14px;background:rgba(0,122,255,.06);border:1.5px dashed rgba(0,122,255,.3);border-radius:var(--rs);font-size:14px;color:var(--sub);line-height:1.55}
+
+/* ── METRICS ── */
+.metrics{display:grid;gap:10px;grid-template-columns:1fr 1fr;margin-bottom:12px}
+@media(min-width:600px){.metrics{grid-template-columns:repeat(4,1fr)}}
+.metric{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.metric-val{font-size:34px;font-weight:700;letter-spacing:-1.5px;line-height:1;margin-bottom:4px}
+.metric-lbl{font-size:12px;color:var(--muted);font-weight:400}
+.mc-blue .metric-val{color:var(--blue)}.mc-green .metric-val{color:var(--green)}
+.mc-orange .metric-val{color:var(--orange)}.mc-red .metric-val{color:var(--red)}
+
+/* ── PILLS ── */
+.pill{display:inline-flex;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:600;margin:2px}
+.pgreen{background:rgba(52,199,89,.15);color:#0E5E2A}
+.pblue{background:rgba(0,122,255,.12);color:#004FA3}
+.porange{background:rgba(255,149,0,.12);color:#7C3D00}
+.pred{background:rgba(255,59,48,.12);color:#7A1612}
+.pgray{background:var(--fill);color:var(--sub)}
+
+/* ── TABLE ── */
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;border-bottom:.5px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+tr:last-child td{border-bottom:none}
+tr.flag td:first-child{border-left:3px solid var(--orange)}
+.empty-state{padding:32px;text-align:center;color:var(--muted);font-size:14px}
+.sum-tbl{width:100%;border-collapse:collapse}
+.sum-tbl th,.sum-tbl td{padding:9px 12px;border-bottom:.5px solid var(--line);text-align:left;vertical-align:top}
+.sum-tbl th{width:36%;font-size:13px;font-weight:600;color:var(--muted)}
+
+/* ── PHOTOS ── */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.photo-card{border-radius:var(--rs);overflow:hidden;background:var(--fill2)}
+.photo-card img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block}
+.photo-card textarea{border:none;background:transparent;border-top:.5px solid var(--line);border-radius:0;min-height:60px;font-size:13px;padding:8px;width:100%;font:inherit;color:var(--ink)}
+.photo-rm{margin:6px;font-size:13px;padding:6px 10px;min-height:32px}
+
+/* ── READINESS ── */
+.readiness{display:grid;gap:6px}
+.ri{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-radius:var(--rs);background:var(--fill2);font-size:14px;font-weight:500}
+.ri .ok{color:var(--green);font-weight:700;font-size:12px}
+.ri .miss{color:var(--red);font-weight:700;font-size:12px}
+
+/* ── MINI CARDS ── */
+.mini-g{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
+.mini{background:var(--fill2);border-radius:var(--rs);padding:12px}
+.mini b{font-size:13px;color:var(--blue);display:block;margin-bottom:3px;font-weight:700}
+.mini span{font-size:13px;color:var(--muted)}
+
+/* ── ACCORDION ── */
+details.acc{background:var(--fill2);border-radius:var(--rs);overflow:hidden}
+details.acc summary{cursor:pointer;padding:13px 14px;font-size:15px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;color:var(--blue)}
+details.acc summary::after{content:"›";font-size:20px;color:var(--muted)}
+details.acc[open] summary::after{content:"⌃"}
+details.acc summary::-webkit-details-marker{display:none}
+details.acc .acc-body{padding:0 14px 14px;font-size:14px;color:var(--sub)}
+details.acc .acc-body ul{margin:4px 0 0;padding-left:16px}
+details.acc .acc-body li{margin:6px 0}
+
+/* ── READINESS DETAILS ── */
+details.ready-acc{border-radius:var(--rs);overflow:hidden;border:1.5px solid var(--line)}
+details.ready-acc summary{cursor:pointer;padding:12px 14px;font-size:14px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center;background:var(--fill2)}
+details.ready-acc summary::-webkit-details-marker{display:none}
+details.ready-acc summary::after{content:"Show ›";font-size:12px;color:var(--blue);font-weight:600}
+details.ready-acc[open] summary::after{content:"Hide ⌃"}
+details.ready-acc .r-body{padding:10px}
+
+/* ── UPLOAD ── */
+.upload-zone{border:2px dashed var(--line);border-radius:var(--r);padding:28px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s}
+.upload-zone:hover{border-color:var(--blue);background:rgba(0,122,255,.04)}
+.upload-icon{font-size:32px;margin-bottom:8px}
+.upload-zone p{margin:4px 0 0;color:var(--muted);font-size:14px}
+.upload-zone strong{color:var(--blue)}
+
+/* ── SECTION LABELS ── */
+.sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);padding:0 2px;margin-top:4px}
+
+/* ── DANGER ZONE ── */
+.danger-zone{border-top:1.5px solid rgba(255,59,48,.2);margin-top:8px;padding-top:12px}
+.danger-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--red);margin-bottom:8px}
+
+/* ── MODAL ── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;backdrop-filter:blur(6px);align-items:flex-end}
+.modal.open{display:flex}
+.sheet{background:var(--card);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:680px;margin:0 auto;max-height:88vh;overflow-y:auto;padding-bottom:calc(env(safe-area-inset-bottom) + 16px)}
+.handle{width:36px;height:4px;border-radius:99px;background:var(--line);margin:12px auto 6px}
+.sheet-head{padding:0 16px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--line)}
+.sheet-head h2{margin:0;font-size:17px;font-weight:700}
+.sheet-body{padding:16px;display:grid;gap:14px}
+
+/* ── CHART ── */
+.chart-row{display:flex;gap:20px;align-items:center;flex-wrap:wrap}
+.legend{display:grid;gap:5px}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);font-weight:500}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* ── SEARCH ── */
+.search-row{display:flex;gap:8px;flex-wrap:wrap}
+.search-row input,.search-row select{flex:1;min-width:140px;font-size:14px;padding:9px 12px;min-height:38px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:calc(var(--tab) + var(--nav) + 12px);left:50%;transform:translateX(-50%) translateY(8px);background:rgba(0,0,0,.82);color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;font-weight:600;z-index:300;pointer-events:none;opacity:0;transition:opacity .2s,transform .2s;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── PRINT ── */
+#printReport{display:none}
+@media print{
+  @page{margin:14mm}
+  body{background:#fff;color:#000}
+  .app-header,.tab-bar,.tool-nav,.app-main,.modal,#toast,.setup-prompt{display:none!important}
+  #printReport{display:block!important;padding:0}
+  #printReport h1{font-size:18px;margin:0 0 12px}
+  #printReport h2{font-size:15px;margin:14px 0 6px}
+  .sum-tbl th,.sum-tbl td,table th,table td{border-bottom:1px solid #ccc}
+  .photo-grid{grid-template-columns:repeat(2,1fr)}
+  .photo-card{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SETUP PROMPT ══════════════════════════════════════════════════════════ -->
+<div class="setup-prompt" id="setupPrompt">
+  <div style="flex:1"><b>Set up before you start</b>Add your name and project — it auto-fills every form.</div>
+  <button onclick="openSettings()">Set up ⚙</button>
+</div>
+
+<!-- ═══ HEADER ═══════════════════════════════════════════════════════════════ -->
+<header class="app-header">
+  <div class="header-inner">
+    <div>
+      <div class="app-wordmark">CLEAR-AMR</div>
+      <div class="app-sub" id="headerSub">Field toolkit</div>
+    </div>
+    <button class="icon-btn" onclick="openSettings()" title="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ═══ MAIN ══════════════════════════════════════════════════════════════════ -->
+<div class="app-main">
+
+<!-- ─── TAB: TRAINING ───────────────────────────────────────────────────────── -->
+<div class="tab-view active" id="tab-train">
+  <div class="step-dots" id="dots-train"></div>
+
+  <div class="step-view active" id="ts0">
+    <div class="card"><div class="card-head"><h2>Prepare</h2><p>Understand the four parts of the CLEAR-AMR fieldwork cycle.</p></div>
+    <div class="card-body">
+      <div class="banner green">CLEAR-AMR looks for campus places where waste, water, food, animals, medicines, or poor hygiene may create AMR-relevant risks. Students document a possible risk route — not prove AMR is present.</div>
+      <div class="mini-g">
+        <div class="mini"><b>1 · Training</b><span>Practise before fieldwork.</span></div>
+        <div class="mini"><b>2 · Site visit</b><span>Record what is seen and heard.</span></div>
+        <div class="mini"><b>3 · Follow-up</b><span>Check what changed at 3, 6, 9 months.</span></div>
+        <div class="mini"><b>4 · Dashboard</b><span>Review all records together.</span></div>
+      </div>
+      <label>Your name or group name<input id="t_name"></label>
+      <label>Training mode<select id="t_mode"><option>Self-practice</option><option>Facilitated group training</option><option>Refresher before fieldwork</option></select></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts1">
+    <div class="card"><div class="card-head"><h2>Project aim</h2><p>Understand what the site visits are for before going out.</p></div>
+    <div class="card-body">
+      <div class="banner blue">Students do not prove that AMR is present. Students document a possible risk route and what may reduce it.</div>
+      <label>Write the project aim in your own words<textarea id="t_aim"></textarea></label>
+      <label>Write one thing you should avoid claiming<textarea id="t_avoid"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts2">
+    <div class="card"><div class="card-head"><h2>Key words</h2><p>Use these four concepts during every site visit.</p></div>
+    <div class="card-body">
+      <div class="mini-g">
+        <div class="mini"><b>Source</b><span>Where the concern starts.</span></div>
+        <div class="mini"><b>Way it moves</b><span>Hands, flies, water, shoes, animals, surfaces.</span></div>
+        <div class="mini"><b>Who it reaches</b><span>People, animals, food, water, soil, surfaces.</span></div>
+        <div class="mini"><b>Control</b><span>What could reduce the route.</span></div>
+      </div>
+      <div class="banner orange">Do not write that AMR is present unless there is laboratory evidence.</div>
+      <label>Which part of the site visit tool may be hardest for your team?<textarea id="t_hard"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts3">
+    <div class="card"><div class="card-head"><h2>Practice: food waste</h2><p>Read the site note and build a risk route sentence.</p></div>
+    <div class="card-body">
+      <div class="banner green">Open food waste is beside a cafeteria. Flies are present. Students are eating nearby. A vendor says waste collection is irregular.</div>
+      <div class="g g2">
+        <label>Source<textarea id="t_s1"></textarea></label>
+        <label>Way it could move<textarea id="t_s2"></textarea></label>
+        <label>Who or what it could reach<textarea id="t_s3"></textarea></label>
+        <label>Possible control<textarea id="t_s4"></textarea></label>
+      </div>
+      <div class="preview-box" id="t_routePreview">Fill the fields above to build the risk route sentence.</div>
+      <label>Closest route type<select id="t_type"><option></option><option>Direct AMR route</option><option>People-animal-environment route</option><option>Infection-pressure route</option><option>General environmental issue</option></select></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts4">
+    <div class="card"><div class="card-head"><h2>Practice: evidence</h2><p>Separate what was seen, heard, assumed, and unknown.</p></div>
+    <div class="card-body">
+      <div class="banner blue">A student says leftover antibiotics are sometimes thrown into a hostel bin. No medicines are seen during the visit.</div>
+      <label>What was seen directly?<textarea id="t_e1"></textarea></label>
+      <label>What was heard from someone else?<textarea id="t_e2"></textarea></label>
+      <label>What still needs checking?<textarea id="t_e3"></textarea></label>
+      <label>Closest recommendation<select id="t_rec"><option></option><option>Core case-study site</option><option>Standard action site</option><option>Watch-list site</option><option>Leave out for now</option></select></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts5">
+    <div class="card"><div class="card-head"><h2>Questions and conduct</h2><p>Ask only what helps the site decision. Keep it short and respectful.</p></div>
+    <div class="card-body">
+      <div class="banner green">Good questions are short, respectful, and practical. Do not ask every question on the list.</div>
+      <label>Best two questions to ask first<textarea id="t_q1" placeholder="Who usually looks after this area? What usually makes the problem come back?"></textarea></label>
+      <label>Respectful opening sentence<textarea id="t_q2" placeholder="Good afternoon. We are part of CLEAR-AMR, and we are recording site conditions and possible improvements."></textarea></label>
+      <label>When should you stop or ask for help?<textarea id="t_q3" placeholder="If a site is unsafe, if someone is angry, or if private records are visible."></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts6">
+    <div class="card"><div class="card-head"><h2>Site visit tool</h2><p>Eight steps — use the Visit tab on this app.</p></div>
+    <div class="card-body">
+      <div class="g g2">
+        <div class="mini"><b>1 · Start</b><span>Site ID, visit type, date, students, person spoken to.</span></div>
+        <div class="mini"><b>2 · Look</b><span>Tick visible concerns. Write one observation.</span></div>
+        <div class="mini"><b>3 · Ask</b><span>A few short questions if someone is available.</span></div>
+        <div class="mini"><b>4 · Risk route</b><span>Build the source → movement → exposure sentence.</span></div>
+        <div class="mini"><b>5 · Evidence</b><span>Photos and a short note only.</span></div>
+        <div class="mini"><b>6 · Classify</b><span>Route type, contact, feasibility, confidence.</span></div>
+        <div class="mini"><b>7 · Check thinking</b><span>Seen / heard / assumed / uncertain.</span></div>
+        <div class="mini"><b>8 · Export</b><span>Recommendation, reason, export JSON + PDF.</span></div>
+      </div>
+      <label>Which step may be hardest for your team?<textarea id="t_sv"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts7">
+    <div class="card"><div class="card-head"><h2>Follow-up tool</h2><p>Five steps — use the Follow-up tab at 3, 6, and 9 months.</p></div>
+    <div class="card-body">
+      <div class="g g2">
+        <div class="mini"><b>Start</b><span>Use the same Site ID as the first visit.</span></div>
+        <div class="mini"><b>What changed?</b><span>Improved / unchanged / worse.</span></div>
+        <div class="mini"><b>Evidence</b><span>Useful photos and captions only.</span></div>
+        <div class="mini"><b>Why?</b><span>Most likely reason. Use "not sure" if needed.</span></div>
+        <div class="mini"><b>Export</b><span>What should happen next. Export JSON + PDF.</span></div>
+      </div>
+      <label>What must stay the same between first visit and follow-up?<textarea id="t_fu" placeholder="The Site ID should stay the same."></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts8">
+    <div class="card"><div class="card-head"><h2>Dashboard</h2><p>Use the Dashboard tab during review and governance meetings.</p></div>
+    <div class="card-body">
+      <div class="g g2">
+        <div class="mini"><b>Your own data</b><span>Your Visit and Follow-up records appear automatically.</span></div>
+        <div class="mini"><b>Upload others</b><span>Import JSON files from teammates.</span></div>
+        <div class="mini"><b>Filter</b><span>By tool, recommendation, or site name.</span></div>
+        <div class="mini"><b>Review</b><span>Decide which sites need action or support.</span></div>
+      </div>
+      <div class="banner orange">The dashboard supports decisions. It does not make the final decision by itself.</div>
+      <label>What should the team check before accepting a site record?<textarea id="t_dash" placeholder="Site ID, risk route, evidence note, and recommendation."></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="ts9">
+    <div class="card"><div class="card-head"><h2>Ready to go</h2><p>Export a training note for your records.</p></div>
+    <div class="card-body">
+      <div class="banner green">You are ready when you can explain the site aim, write a risk route, use careful wording, and export JSON for the dashboard.</div>
+      <div class="g g2">
+        <button class="bp" onclick="exportTrainingPDF()">Export note PDF</button>
+        <button class="bs" onclick="downloadTrainingJSON()">Export note JSON</button>
+      </div>
+      <div class="danger-zone">
+        <div class="danger-label">Danger zone</div>
+        <button class="bd bfull" onclick="clearTraining()">Clear all training answers</button>
+      </div>
+    </div></div>
+  </div>
+</div><!-- /tab-train -->
+
+<!-- ─── TAB: VISIT ───────────────────────────────────────────────────────────── -->
+<div class="tab-view" id="tab-visit">
+  <div class="step-dots" id="dots-visit"></div>
+
+  <div class="step-view active" id="vs0">
+    <div class="card"><div class="card-head"><h2>Start</h2><p>Record where you are and who is completing the form.</p></div>
+    <div class="card-body">
+      <div class="banner green">Look, ask if useful, take useful photos, and write what still needs checking.</div>
+
+      <div class="fgroup">
+        <div class="fgroup-label">Site</div>
+        <div class="g g2">
+          <label>Site ID<input id="v_siteId" placeholder="e.g. CAF-01"></label>
+          <label>Visit type<select id="v_recordType"><option>screening</option><option>baseline</option><option>3_month_followup</option><option>6_month_followup</option><option>9_month_final</option></select></label>
+          <label>Site name<input id="v_siteName"></label>
+          <label>Location<input id="v_location"></label>
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <div class="fgroup-label">When</div>
+        <div class="g g2">
+          <label>Date<input id="v_date" type="date"></label>
+          <label>Time<input id="v_time" type="time"></label>
+        </div>
+      </div>
+
+      <div class="fgroup">
+        <div class="fgroup-label">Who</div>
+        <div class="g g2">
+          <label>Student 1<input id="v_inv1" data-autofill="member1"></label>
+          <label>Student 2<input id="v_inv2" data-autofill="member2"></label>
+          <label>Person spoken to<input id="v_person"></label>
+          <label>Their role<input id="v_role"></label>
+        </div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="vs1">
+    <div class="card"><div class="card-head"><h2>Look</h2><p>Tick what you see. Then write one short observation without blame.</p></div>
+    <div class="card-body">
+      <div class="choices" data-grp="vConcerns">
+        <label class="choice"><input type="checkbox" value="Open or overflowing waste"><span>Open or overflowing waste</span></label>
+        <label class="choice"><input type="checkbox" value="Food waste near eating area"><span>Food waste near eating area</span></label>
+        <label class="choice"><input type="checkbox" value="Clinic or health waste"><span>Clinic or health waste</span></label>
+        <label class="choice"><input type="checkbox" value="Leftover or thrown-away medicines"><span>Leftover or thrown-away medicines</span></label>
+        <label class="choice"><input type="checkbox" value="Blocked gutter, stagnant water, or open drain"><span>Blocked gutter, stagnant water, or open drain</span></label>
+        <label class="choice"><input type="checkbox" value="Dirty toilet or no handwashing point"><span>Dirty toilet or no handwashing point</span></label>
+        <label class="choice"><input type="checkbox" value="Animals reaching waste, food, water, or drains"><span>Animals reaching waste, food, water, or drains</span></label>
+        <label class="choice"><input type="checkbox" value="Poor cleaning or poor maintenance"><span>Poor cleaning or poor maintenance</span></label>
+      </div>
+      <label>Other thing seen<input id="v_otherConcern"></label>
+      <label>Observation <span class="hint">What is visible — not who is to blame.</span><textarea id="v_visible"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="vs2">
+    <div class="card"><div class="card-head"><h2>Ask if useful</h2><p>Use only when someone is available and willing to speak.</p></div>
+    <div class="card-body">
+      <label class="choice"><input id="v_askSkip" type="checkbox"><span>No discussion was possible or needed now<small>This step can be left blank.</small></span></label>
+      <details class="acc" open><summary>Questions about routine</summary><div class="acc-body"><ul><li>Who usually looks after this area?</li><li>How often is it cleaned or cleared?</li><li>What usually makes the problem come back?</li></ul></div></details>
+      <details class="acc"><summary>Questions about who can act</summary><div class="acc-body"><ul><li>Who can agree a small change here?</li><li>Who controls tools, repairs, or waste collection?</li></ul></div></details>
+      <details class="acc"><summary>Questions about what is possible</summary><div class="acc-body"><ul><li>What small change could happen this week?</li><li>What would need help from the department?</li></ul></div></details>
+      <label>Main answer heard<textarea id="v_actorAnswer"></textarea></label>
+      <label>Question to ask later<textarea id="v_followupQ"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="vs3">
+    <div class="card"><div class="card-head"><h2>Risk route</h2><p>Show how the concern could move from source to people, animals, water, food, or surfaces.</p></div>
+    <div class="card-body">
+      <div class="banner blue">Simple route: source → way it moves → who or what it reaches → why it matters → possible control.</div>
+      <div class="g g2">
+        <label>Source <span class="hint">Where does it start?</span><textarea id="v_source" placeholder="Open waste, blocked gutter, thrown-away medicine…"></textarea></label>
+        <label>Way it could move <span class="hint">How could it spread?</span><textarea id="v_route" placeholder="Hands, flies, animals, rain water, shoes, surfaces…"></textarea></label>
+        <label>Who or what it could reach<textarea id="v_exposurePoint" placeholder="Students, cleaners, food sellers, water users…"></textarea></label>
+        <label>Why it matters for AMR<textarea id="v_amr" placeholder="It may increase contact with contaminated waste, infections, or medicine residues."></textarea></label>
+        <label>Possible control<textarea id="v_control" placeholder="Covered bin, cleaning rota, gutter clearing, safe disposal…"></textarea></label>
+      </div>
+      <div class="preview-box" id="v_routePreview">Complete the fields above to build the risk route sentence.</div>
+      <label>Edited risk route sentence<textarea id="v_routeSentence"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="vs4">
+    <div class="card"><div class="card-head"><h2>Evidence</h2><p>Add only useful images and short notes.</p></div>
+    <div class="card-body">
+      <div class="banner orange">Avoid faces, names, private papers, and anything that could identify a person without need.</div>
+      <label class="btn bs" for="v_photoInput" style="cursor:pointer">Add photos</label>
+      <input id="v_photoInput" type="file" accept="image/*" capture="environment" multiple style="display:none">
+      <div id="v_photoGrid" class="photo-grid"></div>
+      <label>Evidence note<textarea id="v_evidenceNote"></textarea></label>
+      <label>What should not be claimed yet?<textarea id="v_notClaimed" placeholder="We cannot say resistant bacteria are present because no laboratory test was done."></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="vs5">
+    <div class="card"><div class="card-head"><h2>Classify</h2><p>Choose the closest answer. Use "not sure" where needed.</p></div>
+    <div class="card-body">
+      <div class="sec">Main type of risk route</div>
+      <div class="choices">
+        <label class="choice"><input name="vPathway" type="radio" value="Direct AMR route"><span>Direct AMR route<small>Medicines, clinic waste, wastewater, sewage, or likely medicine residue.</small></span></label>
+        <label class="choice"><input name="vPathway" type="radio" value="People-animal-environment route"><span>People-animal-environment route<small>Waste, water, food, drains, soil, animals, and people are linked.</small></span></label>
+        <label class="choice"><input name="vPathway" type="radio" value="Infection-pressure route"><span>Infection-pressure route<small>Dirty toilets, food contamination, poor handwashing, or poor cleaning.</small></span></label>
+        <label class="choice"><input name="vPathway" type="radio" value="General environmental issue"><span>General environmental issue<small>Litter or nuisance without a clear AMR route.</small></span></label>
+      </div>
+      <div class="sec" style="margin-top:8px">Scale and changeability</div>
+      <div class="g g2">
+        <label>How many people may come in contact?<select id="v_exposureLevel"><option></option><option>Few</option><option>Some</option><option>Many</option><option>Not sure</option></select></label>
+        <label>Can this be changed in nine months?<select id="v_feasibility"><option></option><option>Yes, likely</option><option>Maybe, with support</option><option>Unlikely without major support</option><option>Not sure</option></select></label>
+        <label>Who can decide or act?<select id="v_authority"><option></option><option>Clear person or office</option><option>Several people or offices</option><option>Unclear</option><option>No one identified</option></select></label>
+        <label>How sure are you?<select id="v_confidence"><option></option><option>Sure</option><option>Partly sure</option><option>Not sure</option></select></label>
+      </div>
+      <label>Why this answer?<textarea id="v_confReason"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="vs6">
+    <div class="card"><div class="card-head"><h2>Check thinking</h2><p>Separate what was seen, heard, assumed, and still unknown.</p></div>
+    <div class="card-body">
+      <div class="g g2">
+        <label>What did we see ourselves?<textarea id="v_seen"></textarea></label>
+        <label>What did someone tell us?<textarea id="v_heard"></textarea></label>
+        <label>What are we assuming?<textarea id="v_assumed"></textarea></label>
+        <label>What do we still need to check?<textarea id="v_uncertain"></textarea></label>
+      </div>
+      <label>Useful lesson from this site<textarea id="v_learning"></textarea></label>
+      <label>Support or approval needed<textarea id="v_escalation"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="vs7">
+    <div class="card"><div class="card-head"><h2>Recommend</h2><p>Choose what should happen next, then check readiness before exporting.</p></div>
+    <div class="card-body">
+      <div class="sec">Student recommendation</div>
+      <div class="choices">
+        <label class="choice"><input name="vRec" type="radio" value="Core case-study site"><span>Core case-study site<small>Use for deeper follow-up and learning.</small></span></label>
+        <label class="choice"><input name="vRec" type="radio" value="Standard action site"><span>Standard action site<small>Use when the route and next action are clear.</small></span></label>
+        <label class="choice"><input name="vRec" type="radio" value="Watch-list site"><span>Watch-list site<small>Use when more checking or approval is needed.</small></span></label>
+        <label class="choice"><input name="vRec" type="radio" value="Leave out for now"><span>Leave out for now<small>Use when the route is weak, unclear, or unsafe.</small></span></label>
+      </div>
+      <div class="preview-box" id="v_reasonPreview">Choose the recommendation and route type to build a reason.</div>
+      <label>Edited reason<textarea id="v_recReason"></textarea></label>
+
+      <details class="ready-acc">
+        <summary>Readiness check</summary>
+        <div class="r-body"><div class="readiness" id="v_ready"></div></div>
+      </details>
+
+      <div class="sec" style="margin-top:4px">Export your work</div>
+      <div class="g g2">
+        <button class="bp" onclick="exportVisitPDF()">Export PDF</button>
+        <button class="bs" onclick="downloadVisitJSON()">Export data file</button>
+      </div>
+      <label class="btn bs bfull" for="v_importFile" style="cursor:pointer;margin-top:0">Import a saved data file</label>
+      <input id="v_importFile" type="file" accept="application/json" style="display:none">
+      <div class="banner blue" style="font-size:13px">On a phone, choose "Save as PDF" from the print screen.</div>
+
+      <div class="danger-zone">
+        <div class="danger-label">Danger zone</div>
+        <button class="bd bfull" onclick="clearVisit()">Clear this visit draft</button>
+      </div>
+    </div></div>
+  </div>
+</div><!-- /tab-visit -->
+
+<!-- ─── TAB: FOLLOW-UP ──────────────────────────────────────────────────────── -->
+<div class="tab-view" id="tab-followup">
+  <div class="step-dots" id="dots-followup"></div>
+
+  <div class="step-view active" id="fs0">
+    <div class="card"><div class="card-head"><h2>Start</h2><p>Use the same Site ID as the original visit so records link correctly.</p></div>
+    <div class="card-body">
+      <button class="bs bfull" onclick="loadFromVisit()" style="margin-bottom:4px">Load Site ID and names from saved Visit ↓</button>
+      <div class="fgroup">
+        <div class="fgroup-label">Site</div>
+        <div class="g g2">
+          <label>Site ID<input id="f_siteId" placeholder="Must match original visit"></label>
+          <label>Site name<input id="f_siteName"></label>
+        </div>
+      </div>
+      <div class="fgroup">
+        <div class="fgroup-label">When</div>
+        <div class="g g2">
+          <label>Follow-up point<select id="f_recordType"><option>3_month_followup</option><option>6_month_followup</option><option>9_month_final</option></select></label>
+          <label>Date<input id="f_date" type="date"></label>
+        </div>
+      </div>
+      <div class="fgroup">
+        <div class="fgroup-label">Who</div>
+        <div class="g g2">
+          <label>Student 1<input id="f_inv1" data-autofill="member1"></label>
+          <label>Student 2<input id="f_inv2" data-autofill="member2"></label>
+        </div>
+      </div>
+      <label>Previous agreed action<textarea id="f_prevAction"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="fs1">
+    <div class="card"><div class="card-head"><h2>What changed?</h2><p>Record what is different since the last visit.</p></div>
+    <div class="card-body">
+      <label>What has improved?<textarea id="f_improved"></textarea></label>
+      <label>What has not improved?<textarea id="f_notImproved"></textarea></label>
+      <label>What has become worse, if anything?<textarea id="f_worse"></textarea></label>
+      <label>Current status
+        <select id="f_status">
+          <option value="">Select the closest</option>
+          <option>Improved and maintained</option>
+          <option>Improved but fragile</option>
+          <option>No clear change</option>
+          <option>Worse</option>
+          <option>Not sure</option>
+        </select>
+      </label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="fs2">
+    <div class="card"><div class="card-head"><h2>Evidence</h2><p>Add only useful photos and notes.</p></div>
+    <div class="card-body">
+      <div class="banner orange">Avoid faces, names, private papers, and anything that could identify a person without need.</div>
+      <label class="btn bs" for="f_photoInput" style="cursor:pointer">Add photos</label>
+      <input id="f_photoInput" type="file" accept="image/*" capture="environment" multiple style="display:none">
+      <div id="f_photoGrid" class="photo-grid"></div>
+      <label>Evidence note<textarea id="f_evidenceNote"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="fs3">
+    <div class="card"><div class="card-head"><h2>Why did this happen?</h2><p>Give the most likely reason. Use "not sure" where needed.</p></div>
+    <div class="card-body">
+      <label>Main reason
+        <select id="f_mainReason">
+          <option value="">Select the closest</option>
+          <option>Action was easy to maintain</option>
+          <option>Responsible person followed through</option>
+          <option>Materials were available</option>
+          <option>Students did most of the work</option>
+          <option>Materials were missing</option>
+          <option>Authority was unclear</option>
+          <option>Repair or budget was needed</option>
+          <option>Site actors did not agree</option>
+          <option>Timing disrupted the work</option>
+          <option>Not sure</option>
+        </select>
+      </label>
+      <label>Reason in your words<textarea id="f_reasonText"></textarea></label>
+      <label>Support or approval needed now<textarea id="f_support"></textarea></label>
+    </div></div>
+  </div>
+
+  <div class="step-view" id="fs4">
+    <div class="card"><div class="card-head"><h2>Next action and export</h2><p>Record what should happen next, then export your work.</p></div>
+    <div class="card-body">
+      <label>Next action<textarea id="f_nextAction"></textarea></label>
+      <label>Escalation needed?<select id="f_escalation"><option>No</option><option>Yes</option><option>Not sure</option></select></label>
+      <label>Learning point<textarea id="f_learning"></textarea></label>
+
+      <div class="sec">Export your work</div>
+      <div class="g g2">
+        <button class="bp" onclick="exportFollowupPDF()">Export PDF</button>
+        <button class="bs" onclick="downloadFollowupJSON()">Export data file</button>
+      </div>
+      <label class="btn bs bfull" for="f_importFile" style="cursor:pointer;margin-top:0">Import a saved data file</label>
+      <input id="f_importFile" type="file" accept="application/json" style="display:none">
+
+      <div class="danger-zone">
+        <div class="danger-label">Danger zone</div>
+        <button class="bd bfull" onclick="clearFollowup()">Clear this follow-up draft</button>
+      </div>
+    </div></div>
+  </div>
+</div><!-- /tab-followup -->
+
+<!-- ─── TAB: DASHBOARD ─────────────────────────────────────────────────────── -->
+<div class="tab-view" id="tab-dash">
+  <div class="metrics">
+    <div class="metric mc-blue"><div class="metric-val" id="d_mTotal">0</div><div class="metric-lbl">Records</div></div>
+    <div class="metric mc-green"><div class="metric-val" id="d_mSites">0</div><div class="metric-lbl">Unique sites</div></div>
+    <div class="metric mc-orange"><div class="metric-val" id="d_mSupport">0</div><div class="metric-lbl">Need support</div></div>
+    <div class="metric mc-red"><div class="metric-val" id="d_mMissing">0</div><div class="metric-lbl">Incomplete</div></div>
+  </div>
+
+  <div class="card"><div class="card-head"><h2>Your device</h2><p>Visit and Follow-up records from this device load automatically.</p></div>
+  <div class="card-body">
+    <div id="d_ownStatus" class="banner blue">Complete a Visit or Follow-up to see your data here.</div>
+  </div></div>
+
+  <div class="card"><div class="card-head"><h2>Add teammates' records</h2><p>Upload JSON files exported by other team members.</p></div>
+  <div class="card-body">
+    <label class="upload-zone" for="d_upload">
+      <div class="upload-icon">⬆</div>
+      <p><strong>Tap to upload JSON files</strong></p>
+      <p>Select many files at once. Composite dashboard exports are also accepted.</p>
+    </label>
+    <input id="d_upload" type="file" accept="application/json" multiple style="display:none">
+    <div id="d_uploadNote"></div>
+    <button class="bd" onclick="clearUploaded()">Clear uploaded records</button>
+  </div></div>
+
+  <div class="card">
+    <div class="card-head"><h2>Recommendations</h2><p>Site visit records only.</p></div>
+    <div class="card-body">
+      <div class="chart-row">
+        <div id="d_donut"></div>
+        <div class="legend" id="d_legend"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card"><div class="card-head"><h2>Filter</h2></div>
+  <div class="card-body">
+    <div class="search-row">
+      <select id="d_fTool"><option value="">All tools</option><option value="site_visit">Site visit</option><option value="followup">Follow-up</option><option value="training">Training</option></select>
+      <select id="d_fRec"><option value="">All recommendations</option><option>Core case-study site</option><option>Standard action site</option><option>Watch-list site</option><option>Leave out for now</option></select>
+      <input id="d_fSearch" placeholder="Search site ID or name…">
+    </div>
+  </div></div>
+
+  <div class="card"><div class="card-head"><h2>All records</h2><p id="d_recCount">No records yet.</p></div>
+  <div style="padding:0;overflow:hidden"><div class="scroll"><table id="d_table">
+    <thead><tr><th>Site</th><th>Tool</th><th>Date</th><th>Route / status</th><th>Contact</th><th>Feasibility</th><th>Confidence</th><th>Recommendation</th><th>Incomplete</th></tr></thead>
+    <tbody id="d_tbody"></tbody>
+  </table></div></div></div>
+
+  <div class="card"><div class="card-head"><h2>Review summary</h2><p>Use this section in governance discussions.</p></div>
+  <div class="card-body" id="d_summary"></div></div>
+
+  <div class="g g2" style="margin-bottom:12px">
+    <button class="bp" onclick="exportDashPDF()">Export dashboard PDF</button>
+    <button class="bs" onclick="downloadDashJSON()">Export all records JSON</button>
+  </div>
+</div><!-- /tab-dash -->
+
+</div><!-- /app-main -->
+
+<!-- ═══ TOOL NAV ═══════════════════════════════════════════════════════════════ -->
+<div class="tool-nav" id="toolNav">
+  <div class="tool-nav-inner">
+    <button class="bg-btn" id="navPrev" onclick="goStep(-1)">← Back</button>
+    <div class="nav-step">
+      <div class="nav-step-name" id="navStepName">Prepare</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:8px">
+        <span class="nav-step-count" id="navStepCount">1 of 10</span>
+        <span class="nav-saved" id="navSaved">Saved ✓</span>
+      </div>
+    </div>
+    <button class="bp" id="navNext" onclick="goStep(1)">Next →</button>
+  </div>
+</div>
+
+<!-- ═══ TAB BAR ═══════════════════════════════════════════════════════════════ -->
+<nav class="tab-bar">
+  <button class="tab-btn active" data-tab="train" onclick="showTab('train')">
+    <svg class="tab-icon" viewBox="0 0 28 28" fill="none"><path d="M14 4L3 10l11 6 11-6-11-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M3 18l11 6 11-6M3 14l11 6 11-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Learn</span>
+  </button>
+  <button class="tab-btn" data-tab="visit" onclick="showTab('visit')">
+    <svg class="tab-icon" viewBox="0 0 28 28" fill="none"><path d="M14 3C10.13 3 7 6.13 7 10c0 5.25 7 15 7 15s7-9.75 7-15c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="14" cy="10" r="2.5" stroke="currentColor" stroke-width="1.8"/></svg>
+    <span>Visit</span>
+  </button>
+  <button class="tab-btn" data-tab="followup" onclick="showTab('followup')">
+    <svg class="tab-icon" viewBox="0 0 28 28" fill="none"><path d="M14 6a8 8 0 100 16A8 8 0 0014 6z" stroke="currentColor" stroke-width="1.8"/><path d="M14 10v4l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20 4l2 2-2 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 6H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Follow-up</span>
+  </button>
+  <button class="tab-btn" data-tab="dash" onclick="showTab('dash')">
+    <svg class="tab-icon" viewBox="0 0 28 28" fill="none"><rect x="4" y="16" width="5" height="8" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="11.5" y="10" width="5" height="14" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="19" y="4" width="5" height="20" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
+    <span>Dashboard</span>
+  </button>
+</nav>
+
+<!-- ═══ SETTINGS ══════════════════════════════════════════════════════════════ -->
+<div class="modal" id="settingsModal" onclick="if(event.target===this)closeSettings()">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-head">
+      <h2>Settings</h2>
+      <button class="bg-btn" style="min-height:34px;padding:6px 14px;font-size:14px" onclick="closeSettings()">Done</button>
+    </div>
+    <div class="sheet-body">
+      <div class="banner blue">These details auto-fill Student 1 and Student 2 in every Visit and Follow-up form.</div>
+      <label>Project name<input id="s_project" placeholder="CLEAR-AMR Uganda 2025"></label>
+      <label>Institution<input id="s_inst" placeholder="Makerere University"></label>
+      <label>Team member 1 (auto-fills Student 1)<input id="s_m1"></label>
+      <label>Team member 2 (auto-fills Student 2)<input id="s_m2"></label>
+      <label>Site ID prefix <span class="hint">e.g. "CAF" → helps you name sites consistently</span><input id="s_prefix" placeholder="CAF"></label>
+      <button class="bp bfull" onclick="saveSettings()">Save settings</button>
+      <div class="banner green" style="font-size:13px;margin-top:4px">This app works fully offline. All data stays on your device. Export JSON to share or back up. Import teammates' JSON files on the Dashboard.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TOAST ════════════════════════════════════════════════════════════════ -->
+<div id="toast"></div>
+
+<!-- ═══ PRINT ════════════════════════════════════════════════════════════════ -->
+<section id="printReport"></section>
+
+<script>
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const KEYS = {
+  settings:'clearamr_settings_v1', activeTab:'clearamr_activeTab',
+  visit:'clearamr_visit_v1', followup:'clearamr_followup_v1', training:'clearamr_training_v1'
+};
+
+const STEP_NAMES = {
+  train:['Prepare','Project aim','Key words','Food waste','Evidence','Questions','Site visit tool','Follow-up tool','Dashboard','Ready to go'],
+  visit:['Start','Look','Ask','Risk route','Evidence','Classify','Check thinking','Recommend'],
+  followup:['Start','What changed','Evidence','Why','Next action']
+};
+
+const STEP_COUNTS = { train:10, visit:8, followup:5 };
+const REC_COLORS = {'Core case-study site':'#007AFF','Standard action site':'#34C759','Watch-list site':'#FF9500','Leave out for now':'#FF3B30','Not stated':'#8E8E93'};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let activeTab = 'train';
+const stepState = { train:0, visit:0, followup:0 };
+let visitPhotos = [], fuPhotos = [], uploadedRecords = [];
+let settings = {};
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const v  = id => ($( id)?.value || '').trim();
+const setv = (id, x) => { const e=$(id); if(e) e.value = x||''; };
+const radio = name => document.querySelector(`input[name="${name}"]:checked`)?.value || '';
+const setRadio = (name, val) => document.querySelectorAll(`input[name="${name}"]`).forEach(x => x.checked = x.value===val);
+const grpChecks = g => [...document.querySelectorAll(`[data-grp="${g}"] input:checked`)].map(x=>x.value);
+const setGrp = (g,arr) => document.querySelectorAll(`[data-grp="${g}"] input`).forEach(x => x.checked=(arr||[]).includes(x.value));
+const esc = s => String(s||'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const row = (a,b) => `<tr><th>${esc(a)}</th><td>${typeof b==='string'?esc(b||'—'):(b||'—')}</td></tr>`;
+const pills = arr => (arr||[]).filter(Boolean).map(x=>`<span class="pill pgray">${esc(x)}</span>`).join('')||'—';
+const today = () => new Date().toISOString().slice(0,10);
+const uid = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random());
+
+// ─── TOAST ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ─── SAVE FLASH ──────────────────────────────────────────────────────────────
+let savedTimer;
+function flashSaved() {
+  const el = $('navSaved'); el.style.opacity = '1';
+  clearTimeout(savedTimer);
+  savedTimer = setTimeout(() => el.style.opacity = '0', 1400);
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function loadSettings() {
+  try { settings = JSON.parse(localStorage.getItem(KEYS.settings)) || {}; }
+  catch(e) { settings = {}; }
+}
+function saveSettings() {
+  settings = { project:v('s_project'), institution:v('s_inst'), member1:v('s_m1'), member2:v('s_m2'), prefix:v('s_prefix'), configured:true };
+  localStorage.setItem(KEYS.settings, JSON.stringify(settings));
+  applySettings();
+  $('settingsModal').classList.remove('open');
+  showToast('Settings saved');
+}
+function applySettings() {
+  $('headerSub').textContent = [settings.project, settings.institution].filter(Boolean).join(' · ') || 'Field toolkit';
+  setv('s_project', settings.project); setv('s_inst', settings.institution);
+  setv('s_m1', settings.member1); setv('s_m2', settings.member2); setv('s_prefix', settings.prefix);
+  document.querySelectorAll('[data-autofill="member1"]').forEach(e => { if(!e.dataset.touched && settings.member1) e.value=settings.member1; });
+  document.querySelectorAll('[data-autofill="member2"]').forEach(e => { if(!e.dataset.touched && settings.member2) e.value=settings.member2; });
+  const sp = $('setupPrompt');
+  if(sp) sp.style.display = settings.configured ? 'none' : '';
+}
+function openSettings() { $('settingsModal').classList.add('open'); }
+function closeSettings() { $('settingsModal').classList.remove('open'); }
+
+// ─── TABS ────────────────────────────────────────────────────────────────────
+function showTab(tab) {
+  // Autosave current tool before switching
+  if(activeTab==='visit') saveVisit(false);
+  if(activeTab==='followup') saveFu(false);
+  if(activeTab==='train') saveTraining(false);
+
+  document.querySelectorAll('.tab-view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  $('tab-'+tab).classList.add('active');
+  document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+  activeTab = tab;
+  localStorage.setItem(KEYS.activeTab, tab);
+  if(tab==='dash') refreshDashboard();
+  updateToolNav();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── STEPS ───────────────────────────────────────────────────────────────────
+function goStep(dir) {
+  const t = activeTab;
+  if(!STEP_COUNTS[t]) return;
+  stepState[t] = Math.max(0, Math.min(STEP_COUNTS[t]-1, stepState[t]+dir));
+  renderSteps(t);
+  updateToolNav();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderSteps(tool) {
+  document.querySelectorAll(`#tab-${tool} .step-view`).forEach((s,i) => s.classList.toggle('active', i===stepState[tool]));
+  const dotsEl = $(`dots-${tool}`);
+  if(dotsEl) dotsEl.innerHTML = Array.from({length:STEP_COUNTS[tool]}, (_,i) =>
+    `<div class="dot${i<stepState[tool]?' done':i===stepState[tool]?' cur':''}"></div>`
+  ).join('');
+  if(tool==='visit') { updateVisitRoute(); updateVisitReason(); checkVisitReady(); }
+  if(tool==='train') updateTrainRoute();
+}
+
+function updateToolNav() {
+  const nav = $('toolNav');
+  if(['train','visit','followup'].includes(activeTab)) {
+    nav.style.display = '';
+    const cur = stepState[activeTab], max = STEP_COUNTS[activeTab]-1;
+    $('navPrev').disabled = cur===0;
+    $('navNext').textContent = cur===max ? 'Done ✓' : 'Next →';
+    $('navStepName').textContent = STEP_NAMES[activeTab][cur];
+    $('navStepCount').textContent = `${cur+1} of ${STEP_COUNTS[activeTab]}`;
+  } else {
+    nav.style.display = 'none';
+  }
+}
+
+// ─── TRAINING ────────────────────────────────────────────────────────────────
+function updateTrainRoute() {
+  const el = $('t_routePreview'); if(!el) return;
+  const s=v('t_s1')||'[source]', r=v('t_s2')||'[way it moves]', e=v('t_s3')||'[who or what it reaches]', c=v('t_s4')||'[possible control]';
+  el.textContent = `At this site, ${s} could move through ${r} and reach ${e}. A possible control is ${c}.`;
+}
+
+function collectTraining() {
+  return { project:'CLEAR-AMR', tool:'training', toolVersion:'1.0', recordType:'training', exportedAt:new Date().toISOString(),
+    traineeName:v('t_name'), trainingMode:v('t_mode'), projectAim:v('t_aim'), avoidClaim:v('t_avoid'), hardestPart:v('t_hard'),
+    ex1Source:v('t_s1'), ex1Route:v('t_s2'), ex1Reach:v('t_s3'), ex1Control:v('t_s4'), ex1Type:v('t_type'),
+    ex2Seen:v('t_e1'), ex2Heard:v('t_e2'), ex2Check:v('t_e3'), ex2Rec:v('t_rec'),
+    bestQuestions:v('t_q1'), openingSentence:v('t_q2'), stopHelp:v('t_q3'),
+    siteVisitAnswer:v('t_sv'), followupAnswer:v('t_fu'), dashboardCheck:v('t_dash') };
+}
+
+function loadTraining(d) {
+  setv('t_name',d.traineeName); setv('t_mode',d.trainingMode); setv('t_aim',d.projectAim); setv('t_avoid',d.avoidClaim); setv('t_hard',d.hardestPart);
+  setv('t_s1',d.ex1Source); setv('t_s2',d.ex1Route); setv('t_s3',d.ex1Reach); setv('t_s4',d.ex1Control); setv('t_type',d.ex1Type);
+  setv('t_e1',d.ex2Seen); setv('t_e2',d.ex2Heard); setv('t_e3',d.ex2Check); setv('t_rec',d.ex2Rec);
+  setv('t_q1',d.bestQuestions); setv('t_q2',d.openingSentence); setv('t_q3',d.stopHelp);
+  setv('t_sv',d.siteVisitAnswer); setv('t_fu',d.followupAnswer); setv('t_dash',d.dashboardCheck);
+  updateTrainRoute();
+}
+
+function saveTraining(flash=true) {
+  localStorage.setItem(KEYS.training, JSON.stringify(collectTraining()));
+  if(flash) flashSaved();
+}
+
+function exportTrainingPDF() {
+  const d=collectTraining();
+  safePrint(`<h1>CLEAR-AMR Training Note</h1><table class="sum-tbl">${[row('Name or group',d.traineeName),row('Training mode',d.trainingMode),row('Project aim',d.projectAim),row('Claim to avoid',d.avoidClaim),row('Food waste: route',$('t_routePreview')?.textContent),row('Medicine example seen',d.ex2Seen),row('Medicine example heard',d.ex2Heard),row('Still to check',d.ex2Check),row('Best questions',d.bestQuestions),row('Opening sentence',d.openingSentence),row('When to stop',d.stopHelp),row('Follow-up answer',d.followupAnswer),row('Dashboard check',d.dashboardCheck)].join('')}</table>`);
+}
+
+function downloadTrainingJSON() { dlJSON(collectTraining(), `CLEAR_AMR_training_${(v('t_name')||'record').replace(/[^a-z0-9]+/gi,'_')}_${today()}`); }
+function clearTraining() { if(confirm('Clear all training answers?')) { localStorage.removeItem(KEYS.training); location.reload(); } }
+
+// ─── VISIT ────────────────────────────────────────────────────────────────────
+function collectVisit() {
+  return { project:'CLEAR-AMR', tool:'site_visit', toolVersion:'1.1', exportedAt:new Date().toISOString(),
+    siteId:v('v_siteId'), recordType:v('v_recordType'), siteName:v('v_siteName'), location:v('v_location'),
+    visitDate:v('v_date'), visitTime:v('v_time'), investigator1:v('v_inv1'), investigator2:v('v_inv2'),
+    personSpoken:v('v_person'), personRole:v('v_role'), otherConcern:v('v_otherConcern'), visibleConcern:v('v_visible'),
+    siteActorAnswer:v('v_actorAnswer'), followUpQuestion:v('v_followupQ'),
+    source:v('v_source'), route:v('v_route'), exposurePoint:v('v_exposurePoint'), amrRelevance:v('v_amr'),
+    feasibleControl:v('v_control'), pathwaySentence:v('v_routeSentence'), evidenceNote:v('v_evidenceNote'),
+    notClaimedYet:v('v_notClaimed'), exposureLevel:v('v_exposureLevel'), feasibility:v('v_feasibility'),
+    authorityClarity:v('v_authority'), confidence:v('v_confidence'), confidenceReason:v('v_confReason'),
+    observedDirectly:v('v_seen'), reportedInfo:v('v_heard'), assumptions:v('v_assumed'), uncertainties:v('v_uncertain'),
+    learningPoint:v('v_learning'), escalationNeed:v('v_escalation'), recommendationReason:v('v_recReason'),
+    concerns:grpChecks('vConcerns'), pathwayCategory:radio('vPathway'), recommendation:radio('vRec'),
+    askNotUsed:$('v_askSkip')?.checked, photos:visitPhotos };
+}
+
+function loadVisit(d) {
+  setv('v_siteId',d.siteId); setv('v_recordType',d.recordType); setv('v_siteName',d.siteName); setv('v_location',d.location);
+  setv('v_date',d.visitDate); setv('v_time',d.visitTime); setv('v_inv1',d.investigator1); setv('v_inv2',d.investigator2);
+  setv('v_person',d.personSpoken); setv('v_role',d.personRole); setv('v_otherConcern',d.otherConcern); setv('v_visible',d.visibleConcern);
+  setv('v_actorAnswer',d.siteActorAnswer); setv('v_followupQ',d.followUpQuestion);
+  setv('v_source',d.source); setv('v_route',d.route); setv('v_exposurePoint',d.exposurePoint); setv('v_amr',d.amrRelevance);
+  setv('v_control',d.feasibleControl); setv('v_routeSentence',d.pathwaySentence); setv('v_evidenceNote',d.evidenceNote);
+  setv('v_notClaimed',d.notClaimedYet); setv('v_exposureLevel',d.exposureLevel); setv('v_feasibility',d.feasibility);
+  setv('v_authority',d.authorityClarity); setv('v_confidence',d.confidence); setv('v_confReason',d.confidenceReason);
+  setv('v_seen',d.observedDirectly); setv('v_heard',d.reportedInfo); setv('v_assumed',d.assumptions); setv('v_uncertain',d.uncertainties);
+  setv('v_learning',d.learningPoint); setv('v_escalation',d.escalationNeed); setv('v_recReason',d.recommendationReason);
+  setGrp('vConcerns',d.concerns); setRadio('vPathway',d.pathwayCategory); setRadio('vRec',d.recommendation);
+  if($('v_askSkip')) $('v_askSkip').checked = !!d.askNotUsed;
+  visitPhotos = Array.isArray(d.photos) ? d.photos : [];
+  renderVisitPhotos(); updateVisitRoute(); updateVisitReason(); checkVisitReady();
+}
+
+function saveVisit(flash=true) {
+  try { localStorage.setItem(KEYS.visit, JSON.stringify(collectVisit())); if(flash) flashSaved(); }
+  catch(e) { showToast('Could not save — remove some images and try again'); }
+}
+
+function updateVisitRoute() {
+  const s=v('v_source')||'[source]', r=v('v_route')||'[way it could move]',
+        e=v('v_exposurePoint')||'[who or what it could reach]', a=v('v_amr')||'[why it matters]', c=v('v_control')||'[possible control]';
+  const sent = `At this site, ${s} could move through ${r} and reach ${e}. This matters because ${a}. A possible control is ${c}.`;
+  const el=$('v_routePreview'); if(el) el.textContent=sent;
+  const rs=$('v_routeSentence');
+  if(rs && !rs.dataset.touched && (v('v_source')||v('v_route'))) rs.value=sent;
+}
+
+function updateVisitReason() {
+  const rec=radio('vRec')||'[recommendation]', cat=radio('vPathway')||'[main route type]',
+        exp=v('v_exposureLevel')||'[contact level]', feas=v('v_feasibility')||'[feasibility]',
+        auth=v('v_authority')||'[who can act]', learn=v('v_learning')||'[useful lesson]';
+  const sent=`We recommend: ${rec}. Main route: ${cat}. Contact level: ${exp}. Change in nine months: ${feas}. Decision by: ${auth}. Useful lesson: ${learn}.`;
+  const el=$('v_reasonPreview'); if(el) el.textContent=sent;
+  const rr=$('v_recReason');
+  if(rr && !rr.dataset.touched && (radio('vRec')||radio('vPathway'))) rr.value=sent;
+}
+
+function checkVisitReady() {
+  const ask=$('v_askSkip')?.checked || v('v_actorAnswer') || v('v_person');
+  const checks=[['Site ID added',!!v('v_siteId')],['Site named',!!v('v_siteName')],['Observation written',!!v('v_visible')],
+    ['Ask step completed or skipped',!!ask],['Risk route written',!!v('v_routeSentence')],['Evidence added',!!(v('v_evidenceNote')||visitPhotos.length)],
+    ['Route type selected',!!radio('vPathway')],['Contact level selected',!!v('v_exposureLevel')],
+    ['Who can act selected',!!v('v_authority')],['Recommendation selected',!!radio('vRec')]];
+  const el=$('v_ready'); if(!el) return;
+  el.innerHTML = checks.map(([a,ok])=>`<div class="ri"><span>${esc(a)}</span><span class="${ok?'ok':'miss'}">${ok?'Done ✓':'Missing'}</span></div>`).join('');
+}
+
+async function addVisitPhotos(files) {
+  for(const f of files) { if(!f.type.startsWith('image/')) continue; visitPhotos.push({id:uid(),dataUrl:await resizeImg(f,1200,.74),caption:''}); }
+  renderVisitPhotos(); saveVisit();
+}
+function removeVisitPhoto(id) { visitPhotos=visitPhotos.filter(p=>p.id!==id); renderVisitPhotos(); saveVisit(); }
+function renderVisitPhotos() {
+  const el=$('v_photoGrid'); if(!el) return;
+  el.innerHTML=visitPhotos.map((p,i)=>`<div class="photo-card"><img src="${p.dataUrl}" alt="Photo ${i+1}"><textarea data-vp="${p.id}" placeholder="Caption">${esc(p.caption)}</textarea><div style="padding:6px"><button class="bd photo-rm" onclick="removeVisitPhoto('${p.id}')">Remove</button></div></div>`).join('');
+  el.querySelectorAll('[data-vp]').forEach(t=>t.oninput=e=>{const p=visitPhotos.find(x=>x.id===e.target.dataset.vp);if(p)p.caption=e.target.value;saveVisit(false);});
+}
+
+function downloadVisitJSON() { dlJSON(collectVisit(),`CLEAR_AMR_visit_${(v('v_siteId')||'site').replace(/[^a-z0-9]+/gi,'_')}_${today()}`); }
+function exportVisitPDF() {
+  const d=collectVisit();
+  const rows=[row('Site ID',d.siteId),row('Visit type',d.recordType),row('Site name',d.siteName),row('Location',d.location),row('Date',`${d.visitDate} ${d.visitTime}`.trim()),row('Students',[d.investigator1,d.investigator2].filter(Boolean).join(', ')),row('Person spoken to',[d.personSpoken,d.personRole].filter(Boolean).join(' — ')),row('Observation',d.visibleConcern),row('Concerns',pills([...(d.concerns||[]),d.otherConcern])),row('Ask step',d.askNotUsed?'Skipped':d.siteActorAnswer),row('Risk route',d.pathwaySentence),row('Evidence note',d.evidenceNote),row('Do not claim',d.notClaimedYet),row('Route type',d.pathwayCategory),row('Contact level',d.exposureLevel),row('Feasibility',d.feasibility),row('Who can act',d.authorityClarity),row('Confidence',d.confidence),row('Confidence reason',d.confidenceReason),row('Seen directly',d.observedDirectly),row('Heard',d.reportedInfo),row('Still to check',d.uncertainties),row('Learning point',d.learningPoint),row('Support needed',d.escalationNeed),row('Recommendation',d.recommendation),row('Reason',d.recommendationReason)].join('');
+  const imgs=visitPhotos.length?`<h2>Images</h2><div class="photo-grid">${visitPhotos.map(p=>`<div class="photo-card"><img src="${p.dataUrl}"><div style="padding:8px;font-size:12px">${esc(p.caption||'No caption')}</div></div>`).join('')}</div>`:'';
+  safePrint(`<h1>CLEAR-AMR Site Visit Record</h1><table class="sum-tbl">${rows}</table>${imgs}`);
+}
+function clearVisit() { if(confirm('Clear this visit draft? This cannot be undone.')) { localStorage.removeItem(KEYS.visit); location.reload(); } }
+
+// ─── FOLLOW-UP ────────────────────────────────────────────────────────────────
+function loadFromVisit() {
+  try {
+    const raw=localStorage.getItem(KEYS.visit); if(!raw) { showToast('No saved visit found on this device'); return; }
+    const d=JSON.parse(raw);
+    if(!d.siteId && !d.siteName) { showToast('Visit has no Site ID or name yet'); return; }
+    setv('f_siteId',d.siteId); setv('f_siteName',d.siteName);
+    if(!$('f_inv1').dataset.touched && d.investigator1) setv('f_inv1',d.investigator1);
+    if(!$('f_inv2').dataset.touched && d.investigator2) setv('f_inv2',d.investigator2);
+    showToast('Site ID and names loaded from Visit ✓');
+    saveFu(false);
+  } catch(e) { showToast('Could not load visit data'); }
+}
+
+function collectFollowup() {
+  return { project:'CLEAR-AMR', tool:'followup', toolVersion:'1.1', exportedAt:new Date().toISOString(),
+    siteId:v('f_siteId'), siteName:v('f_siteName'), recordType:v('f_recordType'), visitDate:v('f_date'),
+    investigator1:v('f_inv1'), investigator2:v('f_inv2'), previousAction:v('f_prevAction'),
+    changed:v('f_improved'), notChanged:v('f_notImproved'), worse:v('f_worse'), currentStatus:v('f_status'),
+    evidenceNote:v('f_evidenceNote'), mainReason:v('f_mainReason'), reasonText:v('f_reasonText'),
+    supportNeeded:v('f_support'), nextAction:v('f_nextAction'), escalationNeeded:v('f_escalation'), learningPoint:v('f_learning'),
+    photos:fuPhotos };
+}
+
+function loadFollowup(d) {
+  setv('f_siteId',d.siteId); setv('f_siteName',d.siteName); setv('f_recordType',d.recordType); setv('f_date',d.visitDate);
+  setv('f_inv1',d.investigator1); setv('f_inv2',d.investigator2); setv('f_prevAction',d.previousAction);
+  setv('f_improved',d.changed); setv('f_notImproved',d.notChanged); setv('f_worse',d.worse); setv('f_status',d.currentStatus);
+  setv('f_evidenceNote',d.evidenceNote); setv('f_mainReason',d.mainReason); setv('f_reasonText',d.reasonText);
+  setv('f_support',d.supportNeeded); setv('f_nextAction',d.nextAction); setv('f_escalation',d.escalationNeeded); setv('f_learning',d.learningPoint);
+  fuPhotos = Array.isArray(d.photos) ? d.photos : [];
+  renderFuPhotos();
+}
+
+function saveFu(flash=true) {
+  try { localStorage.setItem(KEYS.followup, JSON.stringify(collectFollowup())); if(flash) flashSaved(); }
+  catch(e) {}
+}
+
+async function addFuPhotos(files) {
+  for(const f of files) { if(!f.type.startsWith('image/')) continue; fuPhotos.push({id:uid(),dataUrl:await resizeImg(f,1200,.74),caption:''}); }
+  renderFuPhotos(); saveFu();
+}
+function removeFuPhoto(id) { fuPhotos=fuPhotos.filter(p=>p.id!==id); renderFuPhotos(); saveFu(); }
+function renderFuPhotos() {
+  const el=$('f_photoGrid'); if(!el) return;
+  el.innerHTML=fuPhotos.map((p,i)=>`<div class="photo-card"><img src="${p.dataUrl}" alt="Photo ${i+1}"><textarea data-fp="${p.id}" placeholder="Caption">${esc(p.caption)}</textarea><div style="padding:6px"><button class="bd photo-rm" onclick="removeFuPhoto('${p.id}')">Remove</button></div></div>`).join('');
+  el.querySelectorAll('[data-fp]').forEach(t=>t.oninput=e=>{const p=fuPhotos.find(x=>x.id===e.target.dataset.fp);if(p)p.caption=e.target.value;saveFu(false);});
+}
+
+function downloadFollowupJSON() { dlJSON(collectFollowup(),`CLEAR_AMR_followup_${(v('f_siteId')||'site').replace(/[^a-z0-9]+/gi,'_')}_${today()}`); }
+function exportFollowupPDF() {
+  const d=collectFollowup();
+  const rows=[row('Site ID',d.siteId),row('Site name',d.siteName),row('Follow-up point',d.recordType),row('Date',d.visitDate),row('Students',[d.investigator1,d.investigator2].filter(Boolean).join(', ')),row('Previous action',d.previousAction),row('Improved',d.changed),row('Not improved',d.notChanged),row('Worse',d.worse),row('Current status',d.currentStatus),row('Main reason',d.mainReason),row('Reason',d.reasonText),row('Support needed',d.supportNeeded),row('Next action',d.nextAction),row('Escalation',d.escalationNeeded),row('Learning point',d.learningPoint),row('Evidence note',d.evidenceNote)].join('');
+  const imgs=fuPhotos.length?`<h2>Images</h2><div class="photo-grid">${fuPhotos.map(p=>`<div class="photo-card"><img src="${p.dataUrl}"><div style="padding:8px;font-size:12px">${esc(p.caption||'No caption')}</div></div>`).join('')}</div>`:'';
+  safePrint(`<h1>CLEAR-AMR Follow-up Record</h1><table class="sum-tbl">${rows}</table>${imgs}`);
+}
+function clearFollowup() { if(confirm('Clear this follow-up draft? This cannot be undone.')) { localStorage.removeItem(KEYS.followup); location.reload(); } }
+
+// ─── DASHBOARD ────────────────────────────────────────────────────────────────
+function normalizeRecord(d, src) {
+  const missing=[];
+  if(!d.siteId && d.tool!=='training') missing.push('site ID');
+  if(!d.siteName && d.tool!=='training') missing.push('site name');
+  if(d.tool==='site_visit') { if(!d.pathwaySentence) missing.push('risk route'); if(!d.pathwayCategory) missing.push('route type'); if(!d.recommendation) missing.push('recommendation'); if(!d.evidenceNote&&!(d.photos?.length)) missing.push('evidence'); }
+  if(d.tool==='followup') { if(!d.currentStatus) missing.push('status'); if(!d.nextAction) missing.push('next action'); }
+  return { _src:src, tool:d.tool||'', recordType:d.recordType||d.tool||'',
+    siteId:d.siteId||'', siteName:d.siteName||d.traineeName||'', visitDate:d.visitDate||'',
+    students:[d.investigator1,d.investigator2].filter(Boolean).join(', '),
+    pathwayCategory:d.pathwayCategory||'', status:d.currentStatus||'',
+    exposureLevel:d.exposureLevel||'', feasibility:d.feasibility||'',
+    authorityClarity:d.authorityClarity||'', confidence:d.confidence||'',
+    recommendation:d.recommendation||'', support:d.escalationNeed||d.supportNeeded||'',
+    learning:d.learningPoint||d.dashboardCheck||'', missing,
+    evidence:[(d.photos?.length?`${d.photos.length} photo(s)`:''),(d.evidenceNote?'note':'')].filter(Boolean).join(' + ') };
+}
+
+function refreshDashboard() {
+  // Save current in-progress data first so dashboard sees latest state
+  if(activeTab==='visit') saveVisit(false);
+  if(activeTab==='followup') saveFu(false);
+
+  const ownRecords=[];
+  [KEYS.visit, KEYS.followup, KEYS.training].forEach(key=>{
+    try {
+      const raw=localStorage.getItem(key); if(!raw) return;
+      const d=JSON.parse(raw);
+      if(d.project==='CLEAR-AMR' && (d.siteId||d.siteName||d.traineeName)) ownRecords.push(normalizeRecord(d,'(this device)'));
+    } catch(e) {}
+  });
+
+  const ownCount=ownRecords.length;
+  const ownEl=$('d_ownStatus');
+  ownEl.textContent = ownCount ? `${ownCount} record(s) from this device loaded automatically.` : 'No records saved on this device yet. A record appears here once you add a Site ID in Visit or Follow-up.';
+  ownEl.className = `banner ${ownCount?'green':'blue'}`;
+
+  renderDash([...ownRecords, ...uploadedRecords]);
+}
+
+function renderDash(all) {
+  const filtered=applyFilters(all);
+  const sites=new Set(all.filter(r=>r.tool!=='training').map(r=>r.siteId||r.siteName).filter(Boolean));
+  $('d_mTotal').textContent=all.length;
+  $('d_mSites').textContent=sites.size;
+  $('d_mSupport').textContent=all.filter(r=>r.support).length;
+  $('d_mMissing').textContent=all.filter(r=>r.missing.length).length;
+  $('d_recCount').textContent=`${filtered.length} of ${all.length} records shown`;
+  renderDonut(all); renderTable(filtered); renderSummary(filtered);
+}
+
+function applyFilters(records) {
+  const ft=$('d_fTool').value, fr=$('d_fRec').value, fs=$('d_fSearch').value.toLowerCase();
+  return records.filter(r=>(!ft||r.tool===ft)&&(!fr||r.recommendation===fr)&&(!fs||`${r.siteId} ${r.siteName}`.toLowerCase().includes(fs)));
+}
+
+function renderDonut(records) {
+  const counts={};
+  records.filter(r=>r.tool==='site_visit').forEach(r=>{ const k=r.recommendation||'Not stated'; counts[k]=(counts[k]||0)+1; });
+  const segments=Object.entries(counts).map(([k,val])=>({label:k,value:val,color:REC_COLORS[k]||'#8E8E93'}));
+  const total=segments.reduce((s,g)=>s+g.value,0);
+  if(!total) { $('d_donut').innerHTML='<div style="color:var(--muted);font-size:14px;padding:8px 0">No site visit records yet.</div>'; $('d_legend').innerHTML=''; return; }
+  const R=35, C=60, circ=2*Math.PI*R; let cum=0;
+  const paths=segments.map(seg=>{ const len=(seg.value/total)*circ, offset=circ/4-cum; cum+=len; return `<circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="${seg.color}" stroke-width="12" stroke-dasharray="${len} ${circ-len}" stroke-dashoffset="${offset}"/>`; }).join('');
+  $('d_donut').innerHTML=`<svg width="120" height="120" viewBox="0 0 120 120"><circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="#E5E5EA" stroke-width="12"/>${paths}<text x="${C}" y="${C+6}" text-anchor="middle" font-size="18" font-weight="700" fill="var(--ink)">${total}</text></svg>`;
+  $('d_legend').innerHTML=segments.map(s=>`<div class="leg-item"><div class="leg-dot" style="background:${s.color}"></div><span>${esc(s.label)}: <b>${s.value}</b></span></div>`).join('');
+}
+
+function renderTable(records) {
+  if(!records.length) { $('d_tbody').innerHTML=`<tr><td colspan="9" class="empty-state">No records match the current filter. Upload JSON files or complete a Visit to get started.</td></tr>`; return; }
+  $('d_tbody').innerHTML=records.map(r=>`<tr class="${r.missing.length?'flag':''}">
+    <td><b>${esc(r.siteId||'—')}</b><br><span style="color:var(--muted);font-size:12px">${esc(r.siteName)}</span></td>
+    <td><span class="pill pgray" style="font-size:11px">${esc(r.tool)}</span></td>
+    <td style="font-size:13px;color:var(--muted)">${esc(r.visitDate||'—')}</td>
+    <td style="font-size:13px">${esc(r.pathwayCategory||r.status||'—')}</td>
+    <td style="font-size:13px">${esc(r.exposureLevel||'—')}</td>
+    <td style="font-size:13px">${esc(r.feasibility||'—')}</td>
+    <td style="font-size:13px">${esc(r.confidence||'—')}</td>
+    <td>${r.recommendation?`<span class="pill" style="background:${REC_COLORS[r.recommendation]||'#8E8E93'}22;color:${REC_COLORS[r.recommendation]||'#8E8E93'};font-size:11px">${esc(r.recommendation)}</span>`:'—'}</td>
+    <td>${r.missing.length?r.missing.map(m=>`<span class="pill pred" style="font-size:11px">${esc(m)}</span>`).join(''):'<span class="pill pgreen" style="font-size:11px">Complete ✓</span>'}</td>
+  </tr>`).join('');
+}
+
+function renderSummary(records) {
+  const byRec={};
+  records.forEach(r=>{ const k=r.recommendation||'Not stated'; (byRec[k]||(byRec[k]=[])).push(r); });
+  const support=records.filter(r=>r.support), missing=records.filter(r=>r.missing.length), learning=records.filter(r=>r.learning);
+  $('d_summary').innerHTML=`
+    <div class="g g2" style="margin-bottom:14px">
+      <div><div class="sec" style="margin-bottom:8px">Recommendations</div>${Object.entries(byRec).map(([k,val])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:.5px solid var(--line);font-size:14px;font-weight:500"><span>${esc(k)}</span><b>${val.length}</b></div>`).join('')||'<p style="color:var(--muted);font-size:14px">None yet.</p>'}</div>
+      <div><div class="sec" style="margin-bottom:8px">Needs attention</div><div class="ri"><span>Mention support or approval</span><b style="color:var(--orange)">${support.length}</b></div><div class="ri" style="margin-top:6px"><span>Have incomplete items</span><b style="color:var(--red)">${missing.length}</b></div></div>
+    </div>
+    <div class="sec" style="margin-bottom:8px">Support or approval needed</div>
+    <div class="scroll" style="margin-bottom:14px"><table><thead><tr><th>Site</th><th>Support needed</th></tr></thead><tbody>${support.map(r=>`<tr><td>${esc(r.siteId||r.siteName||'—')}</td><td style="font-size:13px">${esc(r.support)}</td></tr>`).join('')||'<tr><td colspan="2" class="empty-state" style="padding:16px">None recorded.</td></tr>'}</tbody></table></div>
+    <div class="sec" style="margin-bottom:8px">Learning points</div>
+    <div class="scroll"><table><thead><tr><th>Site or record</th><th>Learning</th></tr></thead><tbody>${learning.map(r=>`<tr><td>${esc(r.siteId||r.siteName||'—')}</td><td style="font-size:13px">${esc(r.learning)}</td></tr>`).join('')||'<tr><td colspan="2" class="empty-state" style="padding:16px">None recorded.</td></tr>'}</tbody></table></div>`;
+}
+
+function exportDashPDF() {
+  refreshDashboard();
+  setTimeout(()=>safePrint(`<h1>CLEAR-AMR Dashboard Report</h1><p style="color:#555;font-size:13px">Generated: ${new Date().toLocaleString('en-GB')}</p><h2>Summary</h2>${$('d_summary').innerHTML}<h2>All records</h2>${$('d_table').outerHTML}`),100);
+}
+
+function downloadDashJSON() {
+  const ownRaw=[KEYS.visit,KEYS.followup,KEYS.training].map(k=>{ try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;} }).filter(Boolean);
+  const uploaded=uploadedRecords.map(r=>r._raw||r).filter(Boolean);
+  dlJSON({project:'CLEAR-AMR',exportedAt:new Date().toISOString(),records:[...ownRaw,...uploaded]},`CLEAR_AMR_dashboard_export_${today()}`);
+}
+
+function clearUploaded() { if(confirm('Remove all uploaded records?')) { uploadedRecords=[]; $('d_uploadNote').innerHTML=''; refreshDashboard(); } }
+
+// ─── UPLOAD HANDLER ───────────────────────────────────────────────────────────
+$('d_upload').addEventListener('change', async e => {
+  let ok=0, fail=0;
+  for(const f of e.target.files) {
+    try {
+      const d=JSON.parse(await f.text());
+      if(d.project!=='CLEAR-AMR') throw new Error('not CLEAR-AMR');
+      // Accept both single records and composite dashboard exports
+      const items=Array.isArray(d.records) ? d.records : [d];
+      items.forEach(item => { const rec=normalizeRecord(item, f.name); rec._raw=item; uploadedRecords.push(rec); ok++; });
+    } catch(err) { fail++; }
+  }
+  $('d_uploadNote').innerHTML=`<span class="pill pgreen">${ok} accepted</span>${fail?`<span class="pill pred">${fail} rejected (not CLEAR-AMR files)</span>`:''}`;
+  refreshDashboard();
+  showToast(`${ok} record(s) added`);
+});
+
+// ─── SHARED UTILS ─────────────────────────────────────────────────────────────
+function resizeImg(file,max,q) {
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>{ const im=new Image(); im.onload=()=>{ const s=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement('canvas'); c.width=Math.round(im.width*s); c.height=Math.round(im.height*s); c.getContext('2d').drawImage(im,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',q)); }; im.onerror=rej; im.src=r.result; };
+    r.onerror=rej; r.readAsDataURL(file);
+  });
+}
+function dlJSON(data,name) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download=`${name}.json`; a.click(); URL.revokeObjectURL(a.href);
+  showToast('File downloaded ✓');
+}
+function safePrint(html) { $('printReport').innerHTML=html; setTimeout(()=>{window.focus();window.print();},200); }
+
+// ─── EVENT LISTENERS ──────────────────────────────────────────────────────────
+document.addEventListener('input', () => {
+  if(activeTab==='visit') { updateVisitRoute(); updateVisitReason(); checkVisitReady(); saveVisit(true); }
+  if(activeTab==='followup') saveFu(true);
+  if(activeTab==='train') { updateTrainRoute(); saveTraining(true); }
+});
+document.addEventListener('change', () => {
+  if(activeTab==='visit') { updateVisitRoute(); updateVisitReason(); checkVisitReady(); saveVisit(true); }
+  if(activeTab==='followup') saveFu(true);
+  if(activeTab==='train') saveTraining(true);
+});
+
+// Mark edited fields as user-touched so autogenerated text doesn't overwrite them
+$('v_routeSentence').addEventListener('input', e => e.target.dataset.touched='true');
+$('v_recReason').addEventListener('input', e => e.target.dataset.touched='true');
+['v_inv1','v_inv2','f_inv1','f_inv2'].forEach(id => { const el=$(id); if(el) el.addEventListener('input',()=>el.dataset.touched='true'); });
+
+$('v_photoInput').addEventListener('change', e=>addVisitPhotos(e.target.files));
+$('f_photoInput').addEventListener('change', e=>addFuPhotos(e.target.files));
+
+$('v_importFile').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{loadVisit(JSON.parse(r.result));saveVisit();}catch(e){showToast('File could not be imported');} }; r.readAsText(f); });
+$('f_importFile').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{loadFollowup(JSON.parse(r.result));saveFu();}catch(e){showToast('File could not be imported');} }; r.readAsText(f); });
+
+['d_fTool','d_fRec','d_fSearch'].forEach(id=>$(id).addEventListener('input',()=>{ const all=[...[KEYS.visit,KEYS.followup,KEYS.training].flatMap(k=>{try{const r=localStorage.getItem(k);if(!r)return[];const d=JSON.parse(r);return(d.project==='CLEAR-AMR'&&(d.siteId||d.siteName||d.traineeName))?[normalizeRecord(d,'(this device)')]:[]}catch(e){return[];}}), ...uploadedRecords]; renderDash(all); }));
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+loadSettings(); applySettings();
+
+// Restore saved data
+try { const r=localStorage.getItem(KEYS.visit); if(r) loadVisit(JSON.parse(r)); } catch(e) {}
+try { const r=localStorage.getItem(KEYS.followup); if(r) loadFollowup(JSON.parse(r)); } catch(e) {}
+try { const r=localStorage.getItem(KEYS.training); if(r) loadTraining(JSON.parse(r)); } catch(e) {}
+
+// Default dates
+if(!$('v_date').value) $('v_date').value=today();
+if(!$('f_date').value) $('f_date').value=today();
+
+// Restore last active tab (default: visit if settings configured, else train)
+const savedTab=localStorage.getItem(KEYS.activeTab);
+const startTab=savedTab || (settings.configured ? 'visit' : 'train');
+
+// Render step dots
+['train','visit','followup'].forEach(t=>renderSteps(t));
+
+// Show the right tab
+showTab(startTab);
+</script>
+</body>
+</html>
